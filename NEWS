@@ -1,3 +1,6 @@
 libtemplate 0.3
 * libtemplate executable renamed to template
 * template usage changed. see template --help for usage
+* added -r regular expression search and replace 
+* added -i in-place infile=outfile
+* anded -e, -p options for customizing syntax

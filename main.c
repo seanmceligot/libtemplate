@@ -165,7 +165,7 @@ Generate output from a template\n\
   -e, --key-regex   the $ in regex substitutions like /in(sub)in)/out$1/out/ default: %s\n
   -o, --out-file    output file (defaults to stdout)\n\
   -i, --in-place    infile=outfile (backup to infile~)\n\
-  -k, --verbose     verbose debugging\n\
+  -v, --verbose     verbose debugging\n\
       --help        display this help and exit\n\
       --version     output version information and exit\n\
 \n\
