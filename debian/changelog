@@ -1,0 +1,9 @@
+tpe (0.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Sean McEligot <smceligot@hotmail.com>  Tue, 24 Sep 2002 18:12:18 -0400
+
+Local variables:
+mode: debian-changelog
+End:

@@ -1,0 +1,10 @@
+${name}
+ 
+${variables:}
+  ${variables.type} ${variables.name};
+${:variables}
+
+/* 
+	 ${i:test.txt}
+*/
+

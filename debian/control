@@ -1,0 +1,11 @@
+Source: tpe
+Section: unknown
+Priority: optional
+Maintainer: Sean McEligot <smceligot@hotmail.com>
+Standards-Version: 3.2.1
+
+Package: tpe
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Template Engine
+ A Template library and standalone engine
