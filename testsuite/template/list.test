@@ -3,6 +3,8 @@ set -x
 set -e
 set > set.out
 TESTNAME=`basename $0`
+DMALLOC_OPTIONS=debug=0xff67d6b,log=$TESTNAME.dm.out
+export DMALLOC_OPTIONS
 ../../src/template --verbose -l 'variables:name=Foo,type=int|name=bar,type=long' $srcdir/list.template > $TESTNAME.out 2> $TESTNAME.err
 grep '^1\. int Foo; // define Foo' $TESTNAME.out
 grep '^2\. int Foo; // define Foo2. long bar; // define bar$' $TESTNAME.out

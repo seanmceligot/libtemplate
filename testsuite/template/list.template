@@ -5,10 +5,5 @@ ${:variables}
 LIST_END
 ${variables:}2. ${variables.type} ${variables.name}; // define ${variables.name}${:variables}
 LIST2_END
-Insert test.txt:
-/* 
-	 ${i:test.txt}AFTER_INSERT
-*/
 1234replace01Numbers
-
 1234replaceAll

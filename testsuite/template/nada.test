@@ -3,6 +3,8 @@ set -x
 set -e
 set > set.out
 TESTNAME=`basename $0`
+DMALLOC_OPTIONS=debug=0xff67d6b,log=$TESTNAME.dm.out
+export DMALLOC_OPTIONS
 ../../src/template --verbose $srcdir/nada.template > $TESTNAME.out 2> $TESTNAME.err
 grep '^nothing$' $TESTNAME.out
 #grep 'unfreed 0' $TESTNAME.err
