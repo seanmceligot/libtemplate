@@ -108,7 +108,8 @@ replace_insert (char *start, unsigned int deletelen, char *changeto, int
       strncpy (start, changeto, changelen);
       strcpy (endptr + diff, tempbuf);
       if (changelen > stringlen) {
-        start[changelen + 1] = 0;
+
+        start[changelen + strlen(tempbuf)] = 0;
       }
     }
   }

@@ -175,11 +175,11 @@ handle_regex (Template * tp, ParseData * pd, FindReplace * pair)
     int i;
     int start, len;
     int mstart, mlen;
-    char insert[1024];
+    char insert[2048];
     char tag[3];
     tag[0] = template_regsub_prefix;
     tag[2] = 0;
-    strcpy (insert, pair->replace);
+    strcpy(insert,pair->replace);
     debugf ("insert: %s", insert);
     getresult (0, result, &start, &len);
     for (i = 1; i < resultcount; i++) {
@@ -188,12 +188,13 @@ handle_regex (Template * tp, ParseData * pd, FindReplace * pair)
       {
         char sub[mlen];
         safe_strncpy (sub, line + mstart, mlen);
-        debugf ("sub: %s", sub);
-        replace (insert, tag, sub, 1024, buf);
+        debugf ("replace %s %s %s", insert, tag, sub);
+        replace (insert, tag, sub, 2048, buf);
         debugf ("insert now: %s", insert);
       }
     }
     output (pd, insert);
+		free(insert);
   } else                        //(resultcount < 0)
   {
     if (resultcount != PCRE_ERROR_NOMATCH) {

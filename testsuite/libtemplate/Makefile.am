@@ -1,7 +1,7 @@
 LDADDS=-lpcre
 INCLUDES=-I${top_srcdir}
 
-TESTS = check_stringutil check_llist check_strhash 
+TESTS = check_stringutil check_llist check_strhash
 check_PROGRAMS = ${TESTS}
 
 check_stringutil_SOURCES = check_stringutil.c 

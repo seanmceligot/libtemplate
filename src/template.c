@@ -35,6 +35,7 @@ static Template *tpe;
 static int g_inplace;
 static char g_read_fname[FILENAME_MAX];
 static char g_write_fname[FILENAME_MAX];
+
 //FILE *out;
 
 static int
@@ -94,19 +95,19 @@ parse_args (int argc, char **argv)
         char *rstr = argument;
         size_t len = strlen (rstr);
         int ok = TRUE;
-        if (rstr[0] != '/') {
-          ok = FALSE;
-        } else if (rstr[len - 1] != '/') {
+				char reg_sep = rstr[0];
+        if (rstr[len - 1] != reg_sep) {
           ok = FALSE;
         } else {
           rstr[len - 1] = 0;
           rstr++;
-          substr = strchr (rstr, '/');
+          substr = strchr (rstr, reg_sep);
           if (!substr) {
             ok = FALSE;
           } else {
             *substr = 0;
             substr++;
+						fprintf(stderr, "adding %s %s\n", rstr, substr);
             if (!template_addregex (tpe, rstr, substr)) {
               ok = FALSE;
             }
@@ -170,7 +171,7 @@ usage ()
           "Generate output from a template\n"
           "\n"
           "  -k, --keyvalue    key=value\n"
-          "  -r, --regex       /regex(submatch)/substitute$1/\n"
+          "  -r, --regex       /regex(submatch)/substitute$1/ '/' is anything\n"
           "  -l, --list        listname:row1_key1=val1,row1_key2=val2|row2_key1=val1,row2_key2=val2\n"
           "  -p, --sub-prefix  regex used to find keys, defaults: %c\n\n"
           "  -e, --key-regex   the $ in regex substitutions like /in(sub)in)/out$1/out/ default: %s\n\n"
