@@ -7,3 +7,5 @@ Sat Oct 12 21:12:27 EDT 2002 Sean McEligot <smceligot@yahoo.com>
 			 handles lists
 	* libtemplate.c:  use debug command from util.h instead of fprintf to stderr
 	* main.c: converted main to use gnu getopt
+	* lintemplate.c: implemented replace
+	* lintemplate.c: added pcre helper function getresult

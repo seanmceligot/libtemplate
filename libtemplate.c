@@ -15,13 +15,14 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "libtemplate.h"
+#include "stringutil.h"
 
 int template_verbose;
 
 typedef struct _FindReplace FindReplace;
 struct _FindReplace {
   pcre *find;
-  pcre *replace;
+  char *replace;
 };
 static pcre *template_key_re;
 static pcre *template_start_index_re;
@@ -58,6 +59,11 @@ template_init ()
   template_verbose = FALSE;
 }
 
+void
+template_shutdown ()
+{
+}
+
 Template *
 template_new ()
 {
@@ -69,27 +75,81 @@ template_new ()
   tpe->regexes = NULL;
   return tpe;
 }
+
+static void
+getresult (int index, int *result, int *out_start, int *out_end, int *out_len)
+{
+	index *= 2;
+  *out_start = result[index + 0];
+  if (index == 0) {
+    *out_len = result[index + 1];
+    *out_end = *out_start + *out_len;
+  } else {
+    *out_end = result[index + 1];
+    *out_len = *out_end - *out_start;
+  }
+}
 static void
 find_replace (gpointer data, gpointer user_data)
 {
   FindReplace *pair = (FindReplace *) data;
+
   char *lineptr = (char *) user_data;
-  const char ***matches;
   int linelen = strlen (lineptr);
   const int RCOUNT = 99;
   int result[RCOUNT];
-  int resultcount =
+  int resultcount;
+  static char buf[1024];
+
+  if (data == NULL) {
+    return;
+  }
+  resultcount =
     pcre_exec (pair->find, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
   if (resultcount < 0) {
     if (resultcount != PCRE_ERROR_NOMATCH) {
       debug ("tpe:Matching error %d (%s)\n", resultcount, lineptr);
     }
-  } else if (resultcount > 0) {
-    pcre_get_substring_list (lineptr, result, resultcount, matches);
-    while (*matches) {
-      debug ("match %s\n", **matches);
-      matches++;
+  } else if (resultcount == 1) {
+    int start, end, len;
+    getresult (0, result, &start, &end, &len);
+    debug ("line: %s\n", lineptr);
+    //debug("result[%d] = %d\n", 0, result[0]);
+    //debug("result[%d] = %d\n", 1, result[1]);
+    //pcre_get_substring_list (lineptr, result, resultcount, matches);
+    //debug ("find_replace (%s) result = %s\n", lineptr, matches[0][0]);
+    debug ("%d %d %d\n", start, end, len);
+    {
+      int growth =
+        replace_insert (lineptr + start, len, pair->replace, 1024 - start,
+                        buf);
+      debug ("growth: %d\n", growth);
+      debug ("line: %s\n", lineptr);
     }
+  } else if (resultcount > 1) {
+    int i;
+    int start, end, len;
+    int mstart, mend, mlen;
+		char insert[1024];
+		strcpy(insert, pair->replace);
+		debug("insert: %s\n", insert);
+    debug ("line: %s\n", lineptr);
+    getresult (0, result, &start, &end, &len);
+    for (i = 1; i < resultcount; i++) {
+			char tag[3];
+			strcpy(tag, "$N");
+			tag[1] = '0'+i;
+			getresult(i, result, &mstart, &mend, &mlen);
+			{
+							char sub[mlen];
+							strncpy(sub, lineptr+mstart, mlen);
+							sub[mlen] = 0;
+							debug("sub: %s\n", sub);
+							replace(insert, tag, sub, 1024, buf);
+							debug("insert now: %s\n", insert);
+			}
+    }
+		replace_insert(lineptr+start, len, insert, 1024-start, buf);
   }
 
 }
@@ -98,9 +158,10 @@ static void
 free_find_replace (gpointer data, gpointer user_data)
 {
   FindReplace *pair = (FindReplace *) data;
-  free (pair->find);
-  free (pair->replace);
-  free (pair);
+  if (pair != NULL) {
+    free (pair->replace);
+    free (pair);
+  }
 }
 
 void
@@ -109,18 +170,18 @@ template_destroy (Template * tpe)
   g_hash_table_destroy (tpe->pairs);
   // TODO: free list items and list names
   g_hash_table_destroy (tpe->lists);
-	if (tpe->regexes) {
+  if (tpe->regexes) {
     g_slist_foreach (tpe->regexes, (GFunc) free_find_replace, NULL);
     g_slist_free (tpe->regexes);
-	} 
-	tpe->regexes = NULL;
+  }
+  tpe->regexes = NULL;
   free (tpe);
 }
 
 void
 template_parse (Template * tpe, FILE * _in)
 {
-  char inbuf[1024];
+  static char inbuf[1024];
   tpe->in = _in;
   tpe->filelinestart = ftell (tpe->in);
   while (fgets (inbuf, sizeof (inbuf), tpe->in) != NULL) {
@@ -129,13 +190,9 @@ template_parse (Template * tpe, FILE * _in)
   }
 }
 void
-template_shutdown ()
-{
-}
-void
 template_addkeyvalue (Template * tpe, const char *key, const char *value)
 {
-  debug("tpe:%s=%s\n", key, value);
+  debug ("tpe:%s=%s\n", key, value);
   g_hash_table_insert (tpe->pairs, (gpointer) key, (gpointer) value);
 }
 
@@ -170,7 +227,7 @@ template_listadd (TemplateListPtr list, TemplateListHashPtr hash)
 void
 template_addlist (Template * tpe, const char *listname, TemplateListPtr list)
 {
-  debug("adding list %s\n", listname);
+  debug ("adding list %s\n", listname);
   g_hash_table_insert (tpe->lists, (gpointer) listname, list);
 }
 
@@ -294,25 +351,22 @@ template_getmatch (const char *line, int *out_offset, char *match,
 }
 
 int
-template_addregex (Template * tpe, const char *re_find,
-                   const char *re_replace)
+template_addregex (Template * tpe, const char *re_find, const char *replace)
 {
-	
+
   pcre *fre = template_compile (re_find);
-  pcre *rre = template_compile (re_replace);
   FindReplace *fr;
-  if (!fre | !rre) {
-    return 0;
-    ;
+  if (!fre) {
+    return FALSE;
   }
   fr = (FindReplace *) malloc (sizeof (FindReplace));
   fr->find = fre;
-  fr->replace = rre;
-	if (!tpe->regexes) {
-					tpe->regexes = g_slist_alloc();
-	}
+  fr->replace = strdup (replace);
+  if (!tpe->regexes) {
+    tpe->regexes = g_slist_alloc ();
+  }
   g_slist_append (tpe->regexes, (gpointer) fr);
-  return 1;
+  return TRUE;
 }
 
 void
@@ -334,9 +388,9 @@ template_examine_line (Template * tpe, char *inbuf)
   char *value;
 
   inbuf[strlen (inbuf) - 1] = '\0';
-	if (tpe->regexes) {
+  if (tpe->regexes) {
     g_slist_foreach (tpe->regexes, (GFunc) find_replace, inbuf);
-	}
+  }
 
   type = template_getmatch (lineptr, &offset, match, 1024, &out_len);
   while (type == KEY || type == INSERT) {
@@ -349,7 +403,7 @@ template_examine_line (Template * tpe, char *inbuf)
           fputc (lineptr[i], tpe->out);
         }
       }
-      debug("tpe key <<%s>>", match);
+      debug ("tpe key <<%s>>", match);
       value = NULL;
       // examine key
       if (tpe->current_list_hash) {

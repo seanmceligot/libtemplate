@@ -21,21 +21,21 @@ extern int template_verbose;
 
 static void usage ();
 
-Template *tpe;
+static Template *tpe;
 
-int
+static int
 parse_args (int argc, char **argv, char *out_fname)
 {
   int c;
-  while (1) {
+  for (;;) {
     static struct option long_options[] = {
       {"verbose", no_argument, &template_verbose, 1},
       {"brief", no_argument, &template_verbose, 0},
-      {"keyvalue", required_argument, 0, 'k'},
-      {"regex", required_argument, 0, 'r'},
-      {"list", required_argument, 0, 'l'},
-      {"help", no_argument, 0, '?'},
-      {0, 0, 0, 0}
+      {"keyvalue", required_argument, NULL, 'k'},
+      {"regex", required_argument, NULL, 'r'},
+      {"list", required_argument, NULL, 'l'},
+      {"help", no_argument, NULL, '?'},
+      {NULL, 0, NULL, 0}
     };
     /* getopt_long stores the option index here. */
     int option_index = 0;
@@ -48,10 +48,10 @@ parse_args (int argc, char **argv, char *out_fname)
       /* If this option set a flag, do nothing else now. */
       if (long_options[option_index].flag != 0)
         break;
-      debug("option %s", long_options[option_index].name);
+      debug ("option %s", long_options[option_index].name);
       if (optarg)
-        debug(" with arg %s", optarg);
-      debug("\n");
+        debug (" with arg %s", optarg);
+      debug ("\n");
       break;
     case 'k':
       {
@@ -59,7 +59,6 @@ parse_args (int argc, char **argv, char *out_fname)
         char *value = strchr (key, '=');
         if (!value) {
           return FALSE;
-          break;
         }
         *value = 0;
         value++;
@@ -68,7 +67,36 @@ parse_args (int argc, char **argv, char *out_fname)
       }
       break;
     case 'r':
-      debug("r: %s\n", optarg);
+      {
+        char *rstr = optarg;
+        size_t len = strlen (rstr);
+        if (rstr[0] != '/') {
+          usage ();
+          return FALSE;
+        }
+        if (rstr[len - 1] != '/') {
+          usage ();
+          return FALSE;
+        }
+        rstr++;
+        {
+          gchar **v_pair = g_strsplit (rstr, "/", 2);
+          if (!v_pair[1]) {
+            usage ();
+            g_strfreev (v_pair);
+            return FALSE;
+          }
+          {
+            char *regstr = v_pair[0];
+            char *substr = v_pair[1];
+            if (!template_addregex (tpe, regstr, substr)) {
+              g_strfreev (v_pair);
+              return FALSE;
+            }
+            g_strfreev (v_pair);
+          }
+        }
+      }
       break;
     case 'l':
       if (!template_addstrlist (tpe, optarg)) {
@@ -78,20 +106,18 @@ parse_args (int argc, char **argv, char *out_fname)
     case 'h':
       usage ();
       return FALSE;
-      break;
     case '?':
       usage ();
       return FALSE;
-      break;
     default:
       return FALSE;
     }                           // switch
   }                             //while
-  debug("argc: %d, optind %d\n", argc, optind);
+  debug ("argc: %d, optind %d\n", argc, optind);
   if (optind < argc) {
-    strncpy (out_fname, argv[optind++], FILENAME_MAX - 1);
-    out_fname[FILENAME_MAX] = 0;
-    debug("file: %s\n", out_fname);
+    strncpy (out_fname, argv[optind++], FILENAME_MAX);
+    out_fname[FILENAME_MAX - 1] = 0;
+    debug ("file: %s\n", out_fname);
   } else {
     out_fname[0] = '-';
     out_fname[1] = 0;
@@ -121,7 +147,10 @@ main (int argc, char **argv)
   char out_fname[FILENAME_MAX];
   FILE *in;
 
-  template_init ();
+  if (!template_init ()) {
+    fprintf (stderr, "Cannot initialize libtemplate\n");
+    abort ();
+  }
   tpe = template_new ();
   if (parse_args (argc, argv, out_fname)) {
     if ((out_fname[0] == 0) && (out_fname[1] == 0)) {

@@ -11,7 +11,7 @@ GLIB_CFLAGS=${shell pkg-config --cflags $(GLIB)}
 WARN=-Wall
 CFLAGS=-g $(WARN) 
 CC=gcc
-OBJS=main.o
+OBJS=main.o stringutil.o
 
 all:  libtemplate.a template$(EXE)
 
@@ -27,16 +27,19 @@ clean:
 template$(EXE): ${OBJS}  libtemplate.a
 	gcc -g -o $@ ${OBJS} -L. ${LIBS} -ltemplate
 
+ARGS=--verbose -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' -r '/replace([0-9]*)Numbers/substring is ($$1)/' -r /replaceAll/AllWASREPLACED/ test.template
 test:
-	./template -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' test.template
+	./template ${ARGS}
 
 gdb:
+	echo "set args ${ARGS}" > gdb.args
 	gdb -x gdb.args template 
 
 ef:
-	LD_PRELOAD=libefence.so.0.0 ./template -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' test.template
+	LD_PRELOAD=libefence.so.0.0 ./template ${ARGS}
 
-.PHONY: ef gdb test
+.PHONY: ef gdb test splint
+
 install: .PHONY
 	if [ ! -d "$(prefix)/bin" ]; then install -d $(prefix)/bin;fi
 	install -svm755 template$(EXE) $(prefix)/bin/
@@ -50,3 +53,5 @@ install: .PHONY
 %.o: %.c
 	$(CC)  $(CFLAGS) -fPIC $(INCLUDES) $(GLIB_CFLAGS) -c $<
 
+splint:
+	splint +ptrnegate -predboolint -I/usr/include/glib-1.2 -I/usr/lib/glib/include +posixstrictlib +charint ${file}

@@ -7,4 +7,6 @@ Insert test.txt:
 /* 
 	 ${i:test.txt}
 */
+1234replace01Numbers
 
+1234replaceAll
