@@ -7,32 +7,40 @@
 	 */
 int
 replace_insert (char *start, unsigned int deletelen, char *changeto, int
-                maxgrow, char *tempbuf)
+		maxgrow, char *tempbuf)
 {
   int stringlen = strlen (start);
   unsigned int changelen = strlen (changeto);
   int diff = changelen - deletelen;
   int growth = 0;
-  if (diff == 0) {
-    strncpy (start, changeto, changelen);
-    if (changelen > stringlen) {
-      start[changelen] = 0;
-    }
-  } else {
-    growth += diff;
-    if (growth > maxgrow) {
-      fprintf (stderr, "maxlen exceeded\n");
-      return growth;
-    } else {
-      char *endptr = start + deletelen;
-      strcpy (tempbuf, endptr);
-      strcpy (endptr + diff, tempbuf);
+  if (diff == 0)
+    {
       strncpy (start, changeto, changelen);
-      if (changelen > stringlen) {
-        start[changelen] = 0;
-      }
+      if (changelen > stringlen)
+	{
+	  start[changelen] = 0;
+	}
     }
-  }
+  else
+    {
+      growth += diff;
+      if (growth > maxgrow)
+	{
+	  fprintf (stderr, "maxlen exceeded\n");
+	  return growth;
+	}
+      else
+	{
+	  char *endptr = start + deletelen;
+	  strcpy (tempbuf, endptr);
+	  strcpy (endptr + diff, tempbuf);
+	  strncpy (start, changeto, changelen);
+	  if (changelen > stringlen)
+	    {
+	      start[changelen] = 0;
+	    }
+	}
+    }
   return growth;
 
 }
@@ -50,13 +58,14 @@ replace (char *orig, char *find, char *changeto, int maxlen, char *tempbuf)
   int textlen = strlen (orig);
   int maxgrow = maxlen - textlen;
   char *match = strstr (ptr, find);
-  while (match) {
-    ptr = match;
-    maxgrow -= replace_insert (ptr, matchlen, changeto, maxgrow, tempbuf);
-    ptr += changelen;
-    match = strstr (ptr, find);
-    count++;
-  }
+  while (match)
+    {
+      ptr = match;
+      maxgrow -= replace_insert (ptr, matchlen, changeto, maxgrow, tempbuf);
+      ptr += changelen;
+      match = strstr (ptr, find);
+      count++;
+    }
   return count;
 }
 

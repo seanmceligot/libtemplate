@@ -4,10 +4,11 @@
 void
 assert (int assertion, int line)
 {
-  if (!assertion) {
-    fprintf (stderr, "asertion at line %d failed\n", line);
-    abort ();
-  }
+  if (!assertion)
+    {
+      fprintf (stderr, "asertion at line %d failed\n", line);
+      abort ();
+    }
 }
 int
 main (int argc, char **argv)
@@ -38,6 +39,6 @@ main (int argc, char **argv)
   replace (text, world, everyone, maxlen, tempbuf);
   printf ("new: %s\n", text);
   assert (strcmp (text, "hello everyone! everyoneeveryoneeveryone") == 0,
-          __LINE__);
+	  __LINE__);
 
 }
