@@ -19,18 +19,28 @@
 
 int template_verbose;
 
+/*
+ * FindReplace is used for regex s/r
+ */
 typedef struct _FindReplace FindReplace;
 struct _FindReplace {
   pcre *find;
   char *replace;
 };
+
 static pcre *template_key_re;
 static pcre *template_start_index_re;
 static pcre *template_end_index_re;
 static pcre *template_insert_re;
 
+// this is the $ in regex substitutions like /in(sub)n/out$1out/
+char template_regsub_prefix='$';
+
+// key's to be substituted look match this pattern
 static char *template_key_pattern = "\\${([a-zA-Z_\\.]+)}";
+// lists start with this pattern
 static char *template_start_pattern = "\\${([a-zA-Z_]+):}";
+//l
 static char *template_template_end_pattern = "\\${:([a-zA-Z_]+)}";
 static char *template_insert_pattern = "\\${i:([^}]*)}";
 
@@ -131,13 +141,14 @@ find_replace (gpointer data, gpointer user_data)
     int start, end, len;
     int mstart, mend, mlen;
 		char insert[1024];
+		char tag[3];
+		tag[0] = template_regsub_prefix;
+		tag[2] =0;
 		strcpy(insert, pair->replace);
 		debug("insert: %s\n", insert);
     debug ("line: %s\n", lineptr);
     getresult (0, result, &start, &end, &len);
     for (i = 1; i < resultcount; i++) {
-			char tag[3];
-			strcpy(tag, "$N");
 			tag[1] = '0'+i;
 			getresult(i, result, &mstart, &mend, &mlen);
 			{

@@ -153,7 +153,7 @@ main (int argc, char **argv)
   }
   tpe = template_new ();
   if (parse_args (argc, argv, out_fname)) {
-    if ((out_fname[0] == 0) && (out_fname[1] == 0)) {
+    if ((out_fname[0] == '-') && (out_fname[1] == 0)) {
       in = stdin;
     } else {
       fprintf (stderr, "opening %s\n", out_fname);
