@@ -34,7 +34,7 @@ strhash_put (StrHash * hash, char *key, void *data)
   hash->count++;
   if (hash->count > hash->allocated) {
     hash->allocated += hash->grow;
-    realloc (hash->hash, hash->allocated * sizeof (StrHashKeyValue));
+    hash->hash = realloc (hash->hash, hash->allocated * sizeof (StrHashKeyValue));
   }
   hash->hash[hash->count - 1].key = key;
   hash->hash[hash->count - 1].data = data;
