@@ -1,10 +1,11 @@
 #include "stringutil.h"
 #include <stdio.h>
 
+void
 assert (int assertion, int line)
 {
   if (!assertion) {
-    fprintf (stderr, "asertion at line %d failed\n");
+    fprintf (stderr, "asertion at line %d failed\n", line);
     abort ();
   }
 }
@@ -16,6 +17,10 @@ main (int argc, char **argv)
   char tempbuf[maxlen];
   char *world = "world";
   char *everyone = "everyone";
+
+  safe_strncpy (text, "abc", 3);
+  printf ("save_strncpy abc=%s\n", text);
+  assert (strcmp (text, "abc") == 0, __LINE__);
 
   strncpy (text, "hello world!", maxlen);
   printf ("\norig: %s, find: %s, changeto: %s\n", text, world, everyone);

@@ -7,9 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util.h"
 
-TPE_BEGIN_DECLS typedef struct _Template Template;
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+typedef struct _Template Template;
 struct _Template {
   FILE *out;
   FILE *in;
@@ -46,7 +49,7 @@ void template_addkeyvalue (Template * tpe, const char *key,
                            const char *value);
 
 // template_parse to template and write to tpe->out
-void template_parse (Template * tpe, FILE * _in);
+void template_parse (Template * tpe, FILE * in, FILE * out);
 
 // get a new list
 TemplateListPtr template_list_new ();
@@ -62,5 +65,7 @@ void template_addlist (Template * tpe, const char *listname,
                        TemplateListPtr list);
 int template_addregex (Template * tpe, const char *re_find,
                        const char *re_replace);
-TPE_END_DECLS
+#ifdef  __cplusplus
+} // extern c
 #endif
+#endif // defined __LIBTEMPLATE_H

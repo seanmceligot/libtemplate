@@ -1,5 +1,5 @@
 prefix=$(DESTDIR)/usr
-INCLUDES=-I/usr/include
+INCLUDES=-I/usr/include -I.
 EXE=
 GLIB=glib
 GLIB_LIBS=${shell pkg-config --libs $(GLIB)}
@@ -9,13 +9,13 @@ GLIB_A=/usr/lib/libglib.a
 LIBS=-L/usr/lib -lm -lpcre ${GLIB_LIBS}
 GLIB_CFLAGS=${shell pkg-config --cflags $(GLIB)}
 WARN=-Wall
-CFLAGS=-g $(WARN) 
+CFLAGS=-g ${INCLUDES} $(WARN) 
 CC=gcc
 OBJS=main.o stringutil.o
 
 all:  libtemplate.a template$(EXE)
 
-libtemplate.a: libtemplate.o 
+libtemplate.a: libtemplate.o  ${OBJS}
 	ar rc $@ $<  $(GLIB_A)
 
 libtemplate.dll.a: libtemplate.o 
@@ -25,19 +25,20 @@ clean:
 	rm -vf *.o libtemplate$(EXE) *.stackdump *~ *.a *.so *.dll *.la
 
 template$(EXE): ${OBJS}  libtemplate.a
-	gcc -g -o $@ ${OBJS} -L. ${LIBS} -ltemplate
+	gcc -g -o $@ ${OBJS} libtemplate.o  ${LIBS}
 
 ARGS=--verbose -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' -r '/replace([0-9]*)Numbers/substring is ($$1)/' -r /replaceAll/AllWASREPLACED/ test.template
+
 test: test.insert test.k test.r
 
 test.k:
-	echo '$${foo}' | ./template --verbose --keyvalue foo=OK
+	echo 'abc$${foo}efg' | ./template --verbose --keyvalue foo=BAR
 
 test.r:
-	echo 'Ofoo' | ./template --verbose --regex '/([A-Z])foo/$$1K/'
+	echo 'abc123efg' | ./template --verbose --regex '/abc([0-9]*)efg/number: $$1/'
 
 test.insert:
-	echo 'foo$${i:test.txt}bar' | ./template --verbose
+	echo 'BEFORE$${i:test.txt}AFTER' | ./template --verbose
 
 test.example:
 	./template ${ARGS}
@@ -51,7 +52,7 @@ gdb:
 ef:
 	LD_PRELOAD=libefence.so.0.0 ./template ${ARGS}
 
-.PHONY: ef gdb test splint
+.PHONY:
 
 install: .PHONY
 	if [ ! -d "$(prefix)/bin" ]; then install -d $(prefix)/bin;fi
@@ -68,3 +69,6 @@ install: .PHONY
 
 splint:
 	splint +ptrnegate -predboolint -I/usr/include/glib-1.2 -I/usr/lib/glib/include +posixstrictlib +charint ${file}
+
+stringutiltest: stringutil.o stringutiltest.o
+	gcc -g -o $@ stringutil.o stringutiltest.o

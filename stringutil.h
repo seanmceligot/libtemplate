@@ -10,3 +10,5 @@ int
 */
 int
   replace (char *orig, char *find, char *changeto, int maxlen, char *tempbuf);
+
+void safe_strncpy (char *dest, const char *src, int maxlen);

@@ -16,18 +16,30 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "libtemplate.h"
 #include <getopt.h>
+#include "stringutil.h"
+#include "libtemplate_util.h"
 
 extern int template_verbose;
 extern char template_regsub_prefix;
-extern char* template_key_pattern;
+extern char *template_key_pattern;
 static void usage ();
 
 static Template *tpe;
+static int g_inplace;
+static char g_read_fname[FILENAME_MAX];
+static char g_write_fname[FILENAME_MAX];
+FILE *out;
 
 static int
-parse_args (int argc, char **argv, char *out_fname)
+parse_args (int argc, char **argv)
 {
   int c;
+  g_inplace = FALSE;
+
+	//init global variables
+  strcpy(g_read_fname, "-");
+  *g_write_fname= 0;
+	
   for (;;) {
     static struct option long_options[] = {
       {"verbose", no_argument, &template_verbose, 1},
@@ -37,12 +49,14 @@ parse_args (int argc, char **argv, char *out_fname)
       {"list", required_argument, NULL, 'l'},
       {"sub-prefix", required_argument, NULL, 'p'},
       {"key-regex", required_argument, NULL, 'e'},
+      {"out-file", required_argument, NULL, 'o'},
+      {"in-place", no_argument, NULL, 'i'},
       {"help", no_argument, NULL, '?'},
       {NULL, 0, NULL, 0}
     };
     /* getopt_long stores the option index here. */
     int option_index = 0;
-    c = getopt_long (argc, argv, "k:r:l:", long_options, &option_index);
+    c = getopt_long (argc, argv, "k:r:l:p:e:o:i?", long_options, &option_index);
     if (c == -1) {
       break;
     }
@@ -92,6 +106,7 @@ parse_args (int argc, char **argv, char *out_fname)
           {
             char *regstr = v_pair[0];
             char *substr = v_pair[1];
+						debug("replace %s with %s\n",regstr, substr);
             if (!template_addregex (tpe, regstr, substr)) {
               g_strfreev (v_pair);
               return FALSE;
@@ -106,13 +121,19 @@ parse_args (int argc, char **argv, char *out_fname)
         return FALSE;
       }
       break;
-		case 'p':
-			template_regsub_prefix = *optarg;
-			break;
-		case 'e':
-			template_key_pattern=optarg;
-			break;
-		case 'h':
+    case 'p':
+      template_regsub_prefix = *optarg;
+      break;
+    case 'e':
+      template_key_pattern = optarg;
+      break;
+    case 'o':
+      strcpy (g_write_fname, optarg);
+      break;
+    case 'i':
+      g_inplace = TRUE;
+      break;
+    case 'h':
       usage ();
       return FALSE;
     case '?':
@@ -122,14 +143,10 @@ parse_args (int argc, char **argv, char *out_fname)
       return FALSE;
     }                           // switch
   }                             //while
-  debug ("argc: %d, optind %d\n", argc, optind);
+  //debug ("argc: %d, optind %d\n", argc, optind);
   if (optind < argc) {
-    strncpy (out_fname, argv[optind++], FILENAME_MAX);
-    out_fname[FILENAME_MAX - 1] = 0;
-    debug ("file: %s\n", out_fname);
-  } else {
-    out_fname[0] = '-';
-    out_fname[1] = 0;
+    safe_strncpy (g_read_fname, argv[optind++], FILENAME_MAX);
+    debug ("infile: %s\n", g_read_fname);
   }
   return TRUE;
 }
@@ -137,45 +154,74 @@ parse_args (int argc, char **argv, char *out_fname)
 void
 usage ()
 {
-  printf ("Usage: template [OPTION] [TEMPLATE_FILE]\n");
-  printf ("Generate output from a template\n");
-  printf ("\n");
-  printf ("  -k, --keyvalue           key=value\n");
-  printf ("  -r, --regex              /regex(submatch)/substitute$1/\n");
-  printf ("  -l, --list               listname:row1_key1=val1,row1_key2=val2|row2_key1=val1,row2_key2=val2\n");
-  printf ("  -s, --sub-prefix   regex used to find keys, defaults: %c\n", template_regsub_prefix);
-  printf ("  -e, --key-regex    the $ in regex substitutions like /in(sub)in)/out$1/out/ default: %s\n", template_key_pattern);
-  printf ("      --help               display this help and exit\n");
-  printf ("      --version            output version information and exit\n");
-  printf ("\n");
-  printf ("With no FILE, or when FILE is -, read standard input.\n");
+  printf ("\
+Usage: template [OPTION] [TEMPLATE_FILE]\n\
+Generate output from a template\n\
+\n\
+  -k, --keyvalue    key=value\n\
+  -r, --regex       /regex(submatch)/substitute$1/\n\
+  -l, --list        listname:row1_key1=val1,row1_key2=val2|row2_key1=val1,row2_key2=val2\n\
+  -p, --sub-prefix  regex used to find keys, defaults: %c\n
+  -e, --key-regex   the $ in regex substitutions like /in(sub)in)/out$1/out/ default: %s\n
+  -o, --out-file    output file (defaults to stdout)\n\
+  -i, --in-place    infile=outfile (backup to infile~)\n\
+  -k, --verbose     verbose debugging\n\
+      --help        display this help and exit\n\
+      --version     output version information and exit\n\
+\n\
+With no FILE, or when FILE is -, read standard input.\n\
+", template_regsub_prefix,template_key_pattern);
 }
 
 int
 main (int argc, char **argv)
 {
-  char out_fname[FILENAME_MAX];
   FILE *in;
+  FILE *out;
 
   if (!template_init ()) {
     fprintf (stderr, "Cannot initialize libtemplate\n");
     abort ();
   }
   tpe = template_new ();
-  if (parse_args (argc, argv, out_fname)) {
-    if ((out_fname[0] == '-') && (out_fname[1] == 0)) {
-      in = stdin;
-    } else {
-      fprintf (stderr, "opening %s\n", out_fname);
-      in = fopen (out_fname, "r");
-      if (in == NULL) {
-        fprintf (stderr, "could not open (%s)\n", out_fname);
-      }
-    }
-    template_parse (tpe, in);
-    fclose (in);
-    template_destroy (tpe);
-    template_shutdown ();
+  if (!parse_args (argc, argv)) {
+    return 1;
   }
+  if (g_inplace) {
+		char* backfile;
+		if (*g_write_fname != 0) {
+						error("out-file (-o) and in-place (-i) cannot be used together\n");
+						usage();
+						abort();
+		}
+    backfile = malloc (strlen (g_read_fname + 1));
+    strcpy (backfile, g_read_fname);
+    strcat (backfile, "~");
+		debug("renaming %s->%s\n", g_read_fname, backfile);
+    rename (g_read_fname, backfile);
+		safe_strncpy(g_write_fname, g_read_fname, FILENAME_MAX);
+		safe_strncpy(g_read_fname, backfile, FILENAME_MAX);
+  }
+  if (strlen (g_write_fname)) {
+    out = fopen (g_write_fname, "w");
+    if (out == NULL) {
+      fatal( "could not create (%s)\n", g_write_fname);
+    }
+  } else {
+					out = stdout;
+	}
+  if ( strcmp(g_read_fname, "-") == 0) {
+    in = stdin;
+  } else {
+    debug( "opening %s\n", g_read_fname);
+    in = fopen (g_read_fname, "r");
+    if (in == NULL) {
+      fatal("could not open (%s)\n", g_read_fname);
+    }
+  }
+  template_parse (tpe, in, out);
+  fclose (in);
+  template_destroy (tpe);
+  template_shutdown ();
   return 0;
 }

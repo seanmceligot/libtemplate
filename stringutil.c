@@ -59,3 +59,10 @@ replace (char *orig, char *find, char *changeto, int maxlen, char *tempbuf)
   }
   return count;
 }
+
+void
+safe_strncpy (char *dest, const char *src, int maxlen)
+{
+  strncpy (dest, src, maxlen);
+  dest[maxlen - 1] = 0;
+}
