@@ -3,6 +3,7 @@ if [ -f "Makefile" ]; then
 	make clean maintainer-clean
 fi
 aclocal
-autoconf
+#autoconf
+autoreconf -i -f
 autoheader
-automake --gnu
+automake -a -c --gnu

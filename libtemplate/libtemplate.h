@@ -87,7 +87,8 @@ void template_addlist (Template * tpe, const char *listname,
                        TemplateListPtr list);
 int template_addregex (Template * tpe, const char *re_find,
                        const char *re_replace);
-void template_set_verbose (BOOL tf);
+void template_set_verbose (BOOL on);
+void template_set_debug (BOOL on);
 
 #ifdef  __cplusplus
 }
