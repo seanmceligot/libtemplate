@@ -1,3 +1,4 @@
+prefix=$(DESTDIR)/usr
 INCLUDES=-I/usr/include
 EXE=
 GLIB=glib
@@ -12,7 +13,7 @@ CFLAGS=-g $(WARN)
 CC=gcc
 OBJS=main.o
 
-all:  libtemplate.a libtemplate$(EXE)
+all:  libtemplate.a template$(EXE)
 
 libtemplate.a: libtemplate.o 
 	ar rc $@ $<  $(GLIB_A)
@@ -23,21 +24,26 @@ libtemplate.dll.a: libtemplate.o
 clean:
 	rm -vf *.o libtemplate$(EXE) *.stackdump *~ *.a *.so *.dll *.la
 
-libtemplate$(EXE): ${OBJS}  libtemplate.a
-	gcc -g -o $@ ${OBJS} ${LIBS} -L. -ltemplate
+template$(EXE): ${OBJS}  libtemplate.a
+	gcc -g -o $@ ${OBJS} -L. ${LIBS} -ltemplate
 
-test: .PHONY
-	./libtemplate name=Test 'variables:name=Foo,type=int|name=bar,type=long' test.template
+test:
+	./template -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' test.template
 
-.PHONY:
-prefix=$(DESTDIR)/usr
+gdb:
+	gdb -x gdb.args template 
+
+ef:
+	LD_PRELOAD=libefence.so.0.0 ./template -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' test.template
+
+.PHONY: ef gdb test
 install: .PHONY
 	if [ ! -d "$(prefix)/bin" ]; then install -d $(prefix)/bin;fi
-	install -svm755 libtemplate $(prefix)/bin/
+	install -svm755 template$(EXE) $(prefix)/bin/
 	if [ ! -d "$(prefix)/lib" ]; then install -d $(prefix)/lib;fi
-	install -vm644 libtemplate.a $(prefix)/lib/
-	if [ -f "libtemplate.dll" ]; then install -Dvm644 libtemplate.dll $(prefix)/lib;fi
-	if [ -f "libtemplate.dll.a" ]; then install -Dvm644 libtemplate.dll.a $(prefix)/lib;fi
+	if [ -f "libtemplate.a" ]; then install -vm644 libtemplate.a $(prefix)/lib;fi
+	if [ -f "libtemplate.dll" ]; then install -vm644 libtemplate.dll $(prefix)/lib;fi
+	if [ -f "libtemplate.dll.a" ]; then install -vm644 libtemplate.dll.a $(prefix)/lib;fi
 	if [ ! -d "$(prefix)/include" ]; then install -d $(prefix)/include;fi
 	install -vm444 libtemplate.h $(prefix)/include/
 

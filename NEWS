@@ -1,0 +1,3 @@
+libtemplate 0.3
+* libtemplate executable renamed to template
+* template usage changed. see template --help for usage

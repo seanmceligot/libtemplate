@@ -1,0 +1,9 @@
+Sat Oct 12 21:12:27 EDT 2002 Sean McEligot <smceligot@yahoo.com>
+
+	* Release 0.3
+	* util.h: new file
+	* libtemplate.c:  use debug command from util.h instead of fprintf to stderr
+	* libtemplate.c: removed method addstrparm, added addstrlist which only
+			 handles lists
+	* libtemplate.c:  use debug command from util.h instead of fprintf to stderr
+	* main.c: converted main to use gnu getopt

@@ -7,18 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef  __cplusplus
-# define TPE_BEGIN_DECLS  extern "C" {
-# define TPE_END_DECLS    }
-#else
-# define TPE_BEGIN_DECLS
-# define TPE_END_DECLS
-#endif
+#include "util.h"
 
 TPE_BEGIN_DECLS typedef struct _Template Template;
-struct _Template
-{
+struct _Template {
   FILE *out;
   FILE *in;
   //private
@@ -27,6 +19,7 @@ struct _Template
   GHashTable *pairs;
   GHashTable *lists;
   long filelinestart;
+  GSList *regexes;
 };
 typedef GHashTable *TemplateListHashPtr;
 typedef GSList *TemplateListPtr;
@@ -46,10 +39,11 @@ void template_destroy (Template * tpe);
 // key=value
 //   or
 // listkey1:key1=value1,key2=value2|key1=value3,key2=value4
-void template_addstrparam (Template * tpe, char *str);
+int template_addstrlist (Template * tpe, const char *str);
 
 // add key/value
-void template_addkeyvalue (Template * tpe, const char *key, const char *value);
+void template_addkeyvalue (Template * tpe, const char *key,
+                           const char *value);
 
 // template_parse to template and write to tpe->out
 void template_parse (Template * tpe, FILE * _in);
@@ -60,11 +54,13 @@ TemplateListPtr template_list_new ();
 TemplateListHashPtr template_listhash_new ();
 // add key/value to hashtable
 void template_listhashput (TemplateListHashPtr hash, const char *key,
-		      const char *value);
+                           const char *value);
 // addhashtable to list 
 void template_listadd (TemplateListPtr list, TemplateListHashPtr hash);
 // add list to template
-void template_addlist (Template * tpe, const char *listname, TemplateListPtr list);
-
+void template_addlist (Template * tpe, const char *listname,
+                       TemplateListPtr list);
+int template_addregex (Template * tpe, const char *re_find,
+                       const char *re_replace);
 TPE_END_DECLS
 #endif

@@ -1,9 +1,9 @@
-${name}
- 
+Name: ${name}
+List:
 ${variables:}
   ${variables.type} ${variables.name};
 ${:variables}
-
+Insert test.txt:
 /* 
 	 ${i:test.txt}
 */
