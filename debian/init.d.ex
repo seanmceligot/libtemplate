@@ -7,7 +7,7 @@
 # Modified for Debian by Christoph Lameter <clameter@debian.org>
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DAEMON=/usr/sbin/tpe
+DAEMON=/usr/sbin/libtemplate
 # The following value is extracted by debstd to figure out how to generate
 # the postinst script. Edit the field to change the way the script is
 # registered through update-rc.d (see the manpage for update-rc.d!)
@@ -43,7 +43,7 @@ case "$1" in
     start-stop-daemon --start --verbose --exec $DAEMON
     ;;
   *)
-    echo "Usage: /etc/init.d/tpe {start|stop|restart|force-reload}"
+    echo "Usage: /etc/init.d/libtemplate {start|stop|restart|force-reload}"
     exit 1
     ;;
 esac

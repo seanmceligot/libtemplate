@@ -2,16 +2,16 @@
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other parms are allowed: see man(7), man(1)
 .SH NAME
-tpe \- programs to do something
+libtemplate \- programs to do something
 .SH SYNOPSIS
-.B tpe
+.B libtemplate
 .I "[options] files ..."
 .br
 .B bar
 .I "[options] files ..."
 .SH "DESCRIPTION"
 This manual page documents briefly the
-.BR tpe ,
+.BR libtemplate ,
 and
 .B bar
 commands.
@@ -19,7 +19,7 @@ This manual page was written for the Debian GNU/Linux distribution
 because the original program does not have a manual page.
 Instead, it has documentation in the GNU Info format; see below.
 .PP
-.B tpe
+.B libtemplate
 is a program that...
 .SH OPTIONS
 The programs follow the usual GNU command line syntax, with long

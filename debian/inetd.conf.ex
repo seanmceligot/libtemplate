@@ -1,2 +1,2 @@
 #:OTHER:
-tpe	stream	tcp	nowait	root	/usr/sbin/tcpd /usr/sbin/tpe
+libtemplate	stream	tcp	nowait	root	/usr/sbin/tcpd /usr/sbin/libtemplate

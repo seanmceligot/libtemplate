@@ -9,7 +9,7 @@ DESCR="Description"
 #SECTION_NAME="New Section Name"
 
 # The file referred to from the Info directory
-FILE=tpe.info
+FILE=libtemplate.info
 
 # Optional. The files to be copied to /usr/share/info
 #FILES=*.info

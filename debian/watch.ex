@@ -2,4 +2,4 @@
 # Rename this file to "watch" and then you can run the "uscan" command
 # to check for upstream updates and more.
 # Site		Directory		Pattern			Version	Script
-metalab.unc.edu	/pub/Linux/Incomingu	tpe-(.*)\.tar\.gz	debian	uupdate
+metalab.unc.edu	/pub/Linux/Incomingu	libtemplate-(.*)\.tar\.gz	debian	uupdate
