@@ -33,11 +33,11 @@ static pcre *template_start_index_re;
 static pcre *template_end_index_re;
 static pcre *template_insert_re;
 
-// this is the $ in regex substitutions like /in(sub)n/out$1out/
+// this is the $ in regex substitutions like /in(sub)in/out$1out/
 char template_regsub_prefix='$';
 
 // key's to be substituted look match this pattern
-static char *template_key_pattern = "\\${([a-zA-Z_\\.]+)}";
+char *template_key_pattern = "\\${([a-zA-Z_\\.]+)}";
 // lists start with this pattern
 static char *template_start_pattern = "\\${([a-zA-Z_]+):}";
 //l
@@ -47,15 +47,8 @@ static char *template_insert_pattern = "\\${i:([^}]*)}";
 typedef enum { NONE = 0, KEY, START_INDEX, END_INDEX, INSERT } MatchType;
 
 // private methods
-static void template_examine_line (Template * tpe, char *inbuf);
-static MatchType template_getmatch (const char *line, int *out_offset,
-                                    char *match, const unsigned int maxlen,
-                                    int *out_len);
-static BOOL template_getsubmatch (pcre * re, const char *lineptr,
-                                  const int linelen, int *out_offset,
-                                  int *out_len, char *out_match,
-                                  const int match_maxlen);
 static pcre *template_compile (const char *pattern);
+static MatchType template_examine_line (Template * tpe, char *inbuf);
 
 int
 template_init ()
@@ -91,14 +84,15 @@ getresult (int index, int *result, int *out_start, int *out_end, int *out_len)
 {
 	index *= 2;
   *out_start = result[index + 0];
-  if (index == 0) {
-    *out_len = result[index + 1];
-    *out_end = *out_start + *out_len;
-  } else {
+//  if (index == 0) {
+//    *out_len = result[index + 1];
+//    *out_end = *out_start + *out_len;
+//  } else {
     *out_end = result[index + 1];
     *out_len = *out_end - *out_start;
-  }
+//  }
 }
+static const int RCOUNT = 99;
 static void
 find_replace (gpointer data, gpointer user_data)
 {
@@ -106,16 +100,14 @@ find_replace (gpointer data, gpointer user_data)
 
   char *lineptr = (char *) user_data;
   int linelen = strlen (lineptr);
-  const int RCOUNT = 99;
-  int result[RCOUNT];
   int resultcount;
+  int result[RCOUNT];
   static char buf[1024];
 
   if (data == NULL) {
     return;
   }
-  resultcount =
-    pcre_exec (pair->find, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
+  resultcount = pcre_exec (pair->find, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
   if (resultcount < 0) {
     if (resultcount != PCRE_ERROR_NOMATCH) {
       debug ("tpe:Matching error %d (%s)\n", resultcount, lineptr);
@@ -196,7 +188,11 @@ template_parse (Template * tpe, FILE * _in)
   tpe->in = _in;
   tpe->filelinestart = ftell (tpe->in);
   while (fgets (inbuf, sizeof (inbuf), tpe->in) != NULL) {
-    template_examine_line (tpe, inbuf);
+    while(template_examine_line (tpe, inbuf) != NONE) {
+			;
+		}
+		fprintf(tpe->out, inbuf);
+		fprintf(tpe->out, "\n");
     tpe->filelinestart = ftell (tpe->in);
   }
 }
@@ -288,36 +284,6 @@ template_addstrlist (Template * tpe, const char *str)
   return TRUE;
 }
 
-BOOL
-template_getsubmatch (pcre * re, const char *lineptr, const int linelen,
-                      int *out_offset, int *out_len, char *out_match,
-                      const int match_maxlen)
-{
-  const int RCOUNT = 6;
-  int result[RCOUNT];
-  int resultcount =
-    pcre_exec (re, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
-  if (resultcount < 0) {
-    if (resultcount != PCRE_ERROR_NOMATCH) {
-      debug ("tpe:Matching error %d (%s)\n", resultcount, lineptr);
-    }
-    return FALSE;
-  } else if (resultcount == 0) {
-    return FALSE;
-  }
-  *out_offset = result[0];
-  *out_len = result[1];
-  if (resultcount > 1) {
-    const int mstart = result[2];
-    const int mend = result[3];
-    const int mlen = min (mend - mstart, match_maxlen);
-    strncpy (out_match, lineptr + mstart, mlen);
-    out_match[mlen] = 0;
-    //debug("<<<%s>>>", out_match);
-  }
-  return TRUE;
-}
-
 static pcre *
 template_compile (const char *pattern)
 {
@@ -334,30 +300,29 @@ template_compile (const char *pattern)
 }
 
 MatchType
-template_getmatch (const char *line, int *out_offset, char *match,
-                   const unsigned int maxlen, int *out_len)
+template_getmatch (const char *lineptr, int* result)
 {
-  int linelen = (int) strlen (line);
-  if (template_getsubmatch
-      (template_start_index_re, line, linelen, out_offset, out_len, match,
-       maxlen)) {
+  const int RCOUNT = 6;
+  //int result[RCOUNT];
+  int linelen = (int) strlen (lineptr);
+	int resultcount;
+  
+	resultcount = pcre_exec (template_start_index_re, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
+	if (resultcount > 0) {
     return START_INDEX;
-  }
-  if (template_getsubmatch
-      (template_end_index_re, line, linelen, out_offset, out_len, match,
-       maxlen)) {
+	}
+	resultcount = pcre_exec (template_end_index_re, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
+	if (resultcount > 0) {
     return END_INDEX;
-  }
-  if (template_getsubmatch
-      (template_key_re, line, linelen, out_offset, out_len, match, maxlen)) {
+	}
+	resultcount = pcre_exec (template_key_re, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
+	if (resultcount > 0) {
     return KEY;
-  }
-  if (template_getsubmatch
-      (template_insert_re, line, linelen, out_offset, out_len, match, maxlen))
-  {
+	}
+	resultcount = pcre_exec (template_insert_re, NULL, lineptr, linelen, 0, 0, result, RCOUNT);
+	if (resultcount > 0) {
     return INSERT;
-  }
-
+	}
   return NONE;
 }
 
@@ -386,74 +351,79 @@ debug_string_hash (gpointer key, gpointer value, gpointer user)
   debug ("<stringhash:%s=%s>", (char *) key, (char *) value);
 }
 
-void
+MatchType
 template_examine_line (Template * tpe, char *inbuf)
 {
   char tmpbuf[1024];
   char match[1024];
+  char submatch[1024];
+  char buf[1024];
   int offset = 0;
-  int out_len = 0;
   int type;
   long loop_start;
   char *lineptr = inbuf;
   char *value;
+  int result[RCOUNT];
+  int start, end, len;
+  int mstart, mend, mlen;
 
-  inbuf[strlen (inbuf) - 1] = '\0';
   if (tpe->regexes) {
     g_slist_foreach (tpe->regexes, (GFunc) find_replace, inbuf);
   }
 
-  type = template_getmatch (lineptr, &offset, match, 1024, &out_len);
-  while (type == KEY || type == INSERT) {
-    if (type == KEY) {
-      // print up to offset
-      //printf("*lineptr %c, offset %d\n", *lineptr, offset);
-      {
-        int i;
-        for (i = 0; i < offset; i++) {
-          fputc (lineptr[i], tpe->out);
-        }
-      }
-      debug ("tpe key <<%s>>", match);
-      value = NULL;
-      // examine key
-      if (tpe->current_list_hash) {
-        value = (char *) g_hash_table_lookup (tpe->current_list_hash, match);
-        if (!value) {
-          debug ("<list lookup %s failed>", match);
-        }
-      }
+  type = template_getmatch (lineptr, result);
+	if (type != NONE) {
+    getresult (0, result, &start, &end, &len);
+    getresult (1, result, &mstart, &mend, &mlen);
+		strncpy(match, lineptr+start, len);
+		match[len] = 0;
+		strncpy(submatch, lineptr+mstart, mlen);
+		submatch[mlen] = 0;
+		debug("##%s##\n", match);
+		debug("start %d end %d len %d\n", start, end, len);
+		debug("mstart %d mend %d mlen %d\n", mstart, mend, mlen);
+	}
+  if (type == KEY) {
+    debug ("tpe key <<%s>>\n", match);
+    value = NULL;
+    // examine key
+    if (tpe->current_list_hash) {
+      value = (char *) g_hash_table_lookup (tpe->current_list_hash, submatch);
       if (!value) {
-        value = (char *) g_hash_table_lookup (tpe->pairs, match);
-        if (!value) {
-          debug ("<lookup %s failed>", match);
-        }
+        debug ("<list lookup %s failed>\n", submatch);
       }
-      if (value) {
-        fprintf (tpe->out, "%s", value);
-      } else {
-        fprintf (tpe->out, "%s", match);
-      }
-      lineptr += out_len;
-    } else {                    //INSERT
-      FILE *ins = fopen (match, "r");
-      if (ins == NULL) {
-        debug ("could not open (%s)\n", match);
-      } else {
-        while (fgets (tmpbuf, sizeof (tmpbuf), ins) != NULL) {
-          fputs (tmpbuf, tpe->out);
-        }
-        fclose (ins);
-      }
-      lineptr += out_len;
     }
-    type = template_getmatch (lineptr, &offset, match, 1024, &out_len);
-  }
-  switch (type) {
-  case START_INDEX:
+    if (!value) {
+      value = (char *) g_hash_table_lookup (tpe->pairs, submatch);
+      if (!value) {
+        debug ("<lookup %s failed>\n", submatch);
+      }
+    }
+    if (value) {
+			debug("lineptr+start: %s\n", lineptr+start);
+			debug("dlen: %d\n", len);
+			debug("value: %s\n", value);
+			replace_insert(lineptr+start, len, value, 1024-offset, buf);
+			debug("line is now: %s\n", lineptr);
+    }
+	} else if (type == INSERT) {
+    FILE *ins = fopen (submatch, "r");
+    if (ins == NULL) {
+      debug ("could not open (%s)\n", submatch);
+    } else {
+			strcpy(buf, lineptr+start+len);
+			lineptr[start] = 0;
+			debug("after insert is %s\n", buf);
+      while (fgets (tmpbuf, sizeof (tmpbuf), ins) != NULL) {
+        strcat(lineptr, tmpbuf); // TODO: check for overwrite
+      }
+      fclose (ins);
+			strcat(lineptr, buf);
+    }
+  } else if (type == START_INDEX) {
     loop_start = tpe->filelinestart + strlen (lineptr) + 1;
-    //debug("tpe list: %s\n", match);
-    tpe->current_items = (GSList *) g_hash_table_lookup (tpe->lists, match);
+    debug("tpe list: %s\n", submatch);
+    tpe->current_items = (GSList *) g_hash_table_lookup (tpe->lists, submatch);
     if (tpe->current_items) {
       tpe->current_items = (GSList *) g_slist_next (tpe->current_items);
       if (tpe->current_items) {
@@ -462,12 +432,11 @@ template_examine_line (Template * tpe, char *inbuf)
         //g_hash_table_foreach(tpe->current_list_hash, debug_string_hash,NULL);
       }
     } else {
-      debug ("<list %s not found>", match);
+      debug ("<list %s not found>", submatch);
     }
-    break;
-  case END_INDEX:
+	} else if (type == END_INDEX) {
     if (!tpe->current_items) {
-      break;
+      return NONE;
     }
     tpe->current_items = (GSList *) g_slist_next (tpe->current_items);
     if (tpe->current_items != NULL) {
@@ -479,9 +448,6 @@ template_examine_line (Template * tpe, char *inbuf)
       tpe->current_items = NULL;
       tpe->current_list_hash = NULL;
     }
-    break;
-  case NONE:
-    fprintf (tpe->out, "%s\n", lineptr);
-    break;
-  }                             // switch
+	}
+	return type;
 }

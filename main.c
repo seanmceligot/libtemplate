@@ -18,7 +18,8 @@
 #include <getopt.h>
 
 extern int template_verbose;
-
+extern char template_regsub_prefix;
+extern char* template_key_pattern;
 static void usage ();
 
 static Template *tpe;
@@ -34,6 +35,8 @@ parse_args (int argc, char **argv, char *out_fname)
       {"keyvalue", required_argument, NULL, 'k'},
       {"regex", required_argument, NULL, 'r'},
       {"list", required_argument, NULL, 'l'},
+      {"sub-prefix", required_argument, NULL, 'p'},
+      {"key-regex", required_argument, NULL, 'e'},
       {"help", no_argument, NULL, '?'},
       {NULL, 0, NULL, 0}
     };
@@ -103,7 +106,13 @@ parse_args (int argc, char **argv, char *out_fname)
         return FALSE;
       }
       break;
-    case 'h':
+		case 'p':
+			template_regsub_prefix = *optarg;
+			break;
+		case 'e':
+			template_key_pattern=optarg;
+			break;
+		case 'h':
       usage ();
       return FALSE;
     case '?':
@@ -133,8 +142,9 @@ usage ()
   printf ("\n");
   printf ("  -k, --keyvalue           key=value\n");
   printf ("  -r, --regex              /regex(submatch)/substitute$1/\n");
-  printf
-    ("  -l, --list               listname:row1_key1=val1,row1_key2=val2|row2_key1=val1,row2_key2=val2\n");
+  printf ("  -l, --list               listname:row1_key1=val1,row1_key2=val2|row2_key1=val1,row2_key2=val2\n");
+  printf ("  -s, --sub-prefix   regex used to find keys, defaults: %c\n", template_regsub_prefix);
+  printf ("  -e, --key-regex    the $ in regex substitutions like /in(sub)in)/out$1/out/ default: %s\n", template_key_pattern);
   printf ("      --help               display this help and exit\n");
   printf ("      --version            output version information and exit\n");
   printf ("\n");

@@ -28,8 +28,21 @@ template$(EXE): ${OBJS}  libtemplate.a
 	gcc -g -o $@ ${OBJS} -L. ${LIBS} -ltemplate
 
 ARGS=--verbose -k name=Test -l 'variables:name=Foo,type=int|name=bar,type=long' -r '/replace([0-9]*)Numbers/substring is ($$1)/' -r /replaceAll/AllWASREPLACED/ test.template
-test:
+test: test.insert test.k test.r
+
+test.k:
+	echo '$${foo}' | ./template --verbose --keyvalue foo=OK
+
+test.r:
+	echo 'Ofoo' | ./template --verbose --regex '/([A-Z])foo/$$1K/'
+
+test.insert:
+	echo 'foo$${i:test.txt}bar' | ./template --verbose
+
+test.example:
 	./template ${ARGS}
+#echo '$${list:}' '$${list.a}' '$${list.b}' '$${:list}' | ./template -l  'list:b=1,a=2|b=3,a=4' 
+
 
 gdb:
 	echo "set args ${ARGS}" > gdb.args

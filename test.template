@@ -5,7 +5,7 @@ ${variables:}
 ${:variables}
 Insert test.txt:
 /* 
-	 ${i:test.txt}
+	 ${i:test.txt}AFTER_INSERT
 */
 1234replace01Numbers
 
