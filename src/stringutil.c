@@ -139,3 +139,8 @@ replace (char *orig, char *find, char *changeto, int maxlen, char *tempbuf)
   return count;
 }
 
+void
+stringutil_set_debug (BOOL on)
+{
+  g_verbose_debug = on;
+}

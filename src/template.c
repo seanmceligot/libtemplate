@@ -37,14 +37,6 @@ static char g_read_fname[FILENAME_MAX];
 static char g_write_fname[FILENAME_MAX];
 //FILE *out;
 
-void myexit() {
-	debug ("myexit");
-	if (tpe  != NULL) {
-  template_destroy (tpe);
-	}
-  template_shutdown ();
-	xmalloc_exit();
-}
 static int
 parse_args (int argc, char **argv)
 {
@@ -66,12 +58,13 @@ parse_args (int argc, char **argv)
       {"out-file", required_argument, NULL, 'o'},
       {"in-place", no_argument, NULL, 'i'},
       {"help", no_argument, NULL, '?'},
+      {"debug", no_argument, NULL, 'd'},
       {NULL, 0, NULL, 0}
     };
     /* getopt_long stores the option index here. */
     int option_index = 0;
     c =
-      getopt_long (argc, argv, "vk:r:l:p:e:o:i?", long_options,
+      getopt_long (argc, argv, "dvk:r:l:p:e:o:i?", long_options,
                    &option_index);
     if (c == -1) {
       break;
@@ -145,8 +138,11 @@ parse_args (int argc, char **argv)
     case 'i':
       g_inplace = TRUE;
       break;
-    case 'v':
+    case 'd':
       g_verbose_debug = TRUE;
+      template_set_debug (TRUE);
+      break;
+    case 'v':
       template_set_verbose (TRUE);
       break;
     case 'h':
@@ -192,15 +188,16 @@ main (int argc, char **argv)
 {
   FILE *in;
   FILE *out;
-	atexit(myexit);
+	int exitval = 1;
+
 	xmalloc_init();
   if (!template_init ()) {
     fatal("Cannot initialize libtemplate");
-    return 1;
+			goto exit;
   }
   tpe = template_new ();
   if (!parse_args (argc, argv)) {
-    return 1;
+			goto exit;
   }
   if (g_inplace) {
     char *backfile;
@@ -220,7 +217,7 @@ main (int argc, char **argv)
     out = fopen (g_write_fname, "w");
     if (out == NULL) {
       fatalf ("could not create (%s)", g_write_fname);
-			return 1;
+			goto exit;
     }
   } else {
     out = stdout;
@@ -233,7 +230,7 @@ main (int argc, char **argv)
     in = fopen (g_read_fname, "rt");
     if (in == NULL) {
       fatalf ("could not open (%s)", g_read_fname);
-			return 1;
+			goto exit;
     }
   }
   debugf ("parsing %s", g_read_fname);
@@ -244,6 +241,14 @@ main (int argc, char **argv)
 	if (out != stdout) {
 					fclose(out);
 	}
-  return 0;
+
+	exitval  = 0;
+exit:
+	if (tpe  != NULL) {
+  template_destroy (tpe);
+	}
+  template_shutdown ();
+	xmalloc_exit();
+  return exitval;
 }
 

@@ -26,6 +26,7 @@
 #include "libtemplate/xmalloc.h"
 
 static int g_verbose_debug = FALSE;
+static int g_verbose_verbose = FALSE;
 
 /*
  * FindReplace is used for regex s/r
@@ -93,16 +94,10 @@ void
 template_shutdown ()
 {
   debug ("template_shutdown");
-}
-
-Template *
-template_new ()
-{
-  Template *tp = xmalloc (sizeof (Template));
-  tp->pairs = strhash_new (1, 2);
-  tp->lists = strhash_new (1, 2);
-  tp->regexes = NULL;
-  return tp;
+  xfree( template_key_re );
+  xfree( template_start_index_re );
+  xfree( template_end_index_re );
+  xfree( template_insert_re );
 }
 void free_pairs(void* key, void* data, void* user_data) {
 				xfree(key);
@@ -110,6 +105,7 @@ void free_pairs(void* key, void* data, void* user_data) {
 }
 void free_listhash(void *vlisthashp, void* user_data) {
 				TemplateListHashPtr listhashp = (TemplateListHashPtr)vlisthashp;
+				debugf("freeeach %p", vlisthashp);
 				strhash_free_each(listhashp, free_pairs, NULL);
 }
 void free_list(void* key, void* data, void* user_data) {
@@ -132,6 +128,15 @@ template_destroy (Template * tp)
   }
   tp->regexes = NULL;
   xfree (tp);
+}
+Template *
+template_new ()
+{
+  Template *tp = xmalloc (sizeof (Template));
+  tp->pairs = strhash_new (1, 2);
+  tp->lists = strhash_new (1, 2);
+  tp->regexes = NULL;
+  return tp;
 }
 
 static void
@@ -210,7 +215,7 @@ void
 template_addkeyvalue (Template * tp, const char *key, const char *value)
 {
   debugf ("%s=%s", key, value);
-  strhash_put (tp->pairs, (void *) key, (void *) value);
+  strhash_put (tp->pairs, (void *) xstrdup(key), (void *) xstrdup(value));
 }
 
 TemplateListPtr
@@ -232,7 +237,7 @@ template_listhashput (TemplateListHashPtr hash, const char *key,
                       const char *value)
 {
   debugf ("%s = %s", key, value);
-  strhash_put (hash, (void *) key, (void *) value);
+  strhash_put (hash, (void *) xstrdup(key), (void *) xstrdup(value));
 }
 
 TemplateListPtr
@@ -245,7 +250,7 @@ void
 template_addlist (Template * tp, const char *listname, TemplateListPtr list)
 {
   debugf ("adding list %s", listname);
-  strhash_put (tp->lists, (void *) listname, (void *) list);
+  strhash_put (tp->lists, (void *) xstrdup(listname), (void *) list);
 }
 
 // str is like:
@@ -264,7 +269,7 @@ template_addstrlist (Template * tp, const char *str)
     strfreev (v_namelist);
     return FALSE;
   }
-  listname = xstrdup (v_namelist[0]);
+  listname = v_namelist[0];
   strwholelist = v_namelist[1];
   v_commalist = strsplitc (strwholelist, '|', 0);
   tplist = template_list_new ();
@@ -280,7 +285,8 @@ template_addstrlist (Template * tp, const char *str)
       strcpy (keyname, listname);
       strcat (keyname, ".");
       strcat (keyname, key);
-      template_listhashput (tplistpairs, keyname, xstrdup (value));
+      template_listhashput (tplistpairs, keyname, value);
+			free(keyname);
       pairno++;
       strfreev (keyvalue);
       //xfree (keyname);
@@ -409,6 +415,7 @@ pd_new ()
   ParseData *pd = xmalloc (sizeof (ParseData));
   pd->inbuf_sz = 1024;
   pd->inbuf = xmalloc (pd->inbuf_sz);
+	pd->current_list_hash = NULL;
   return pd;
 }
 
@@ -673,11 +680,17 @@ template_parse (Template * tp, FILE * in, FILE * out)
     }                           // end while (*lineptr)
   }
 	pd_free(pd);
-  fflush (pd->out);
 }
 
 void
-template_set_verbose (BOOL tf)
+template_set_verbose (BOOL on)
 {
-  g_verbose_debug = tf;
+				g_verbose_verbose= on;
+}
+void
+template_set_debug (BOOL on)
+{
+  g_verbose_debug = on;
+	stringutil_set_debug(on);
+	xmalloc_set_debug(on);
 }
