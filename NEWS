@@ -1,3 +1,11 @@
+libtemplate 0.4.1
+* use dmalloc
+* bugfix in strhash.c
+
+libtemplate 0.4
+* converted to automake/autoconf
+* added testsuite
+ 
 libtemplate 0.3
 * libtemplate executable renamed to template
 * template usage changed. see template --help for usage
@@ -5,7 +13,3 @@ libtemplate 0.3
 * added -i in-place infile=outfile
 * anded -e, -p options for customizing syntax
 
-libtemplate 0.4
-* converted to automake/autoconf
-* added testsuite
- 

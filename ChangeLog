@@ -1,4 +1,35 @@
-Sat Oct 12 21:12:27 EDT 2002 Sean McEligot <smceligot@yahoo.com>
+2002-12-08  smceligot  <smceligot@yahoo.com>
+
+	* Release 0.4.1
+	* /cvsroot/libtemplate/libtemplate/Makefile.am, /cvsroot/libtemplate/libtemplate/autogen.sh, /cvsroot/libtemplate/libtemplate/configure.in, /cvsroot/libtemplate/libtemplate/libtemplate/libtemplate.h, /cvsroot/libtemplate/libtemplate/libtemplate/stringutil.h, /cvsroot/libtemplate/libtemplate/libtemplate/xmalloc.h:
+	use dmalloc
+
+	* /cvsroot/libtemplate/libtemplate/src/Makefile.am, /cvsroot/libtemplate/libtemplate/src/libtemplate.c, /cvsroot/libtemplate/libtemplate/src/stringutil.c, /cvsroot/libtemplate/libtemplate/src/template.c, /cvsroot/libtemplate/libtemplate/src/xmalloc.c:
+	use dmalloc
+	added --debug, -d command line option
+
+	* /cvsroot/libtemplate/libtemplate/testsuite/template/Makefile.am, /cvsroot/libtemplate/libtemplate/testsuite/template/list.template, /cvsroot/libtemplate/libtemplate/testsuite/template/list.test, /cvsroot/libtemplate/libtemplate/testsuite/template/nada.test:
+	use dmalloc
+
+2002-12-07  smceligot  <smceligot@yahoo.com>
+
+	* /cvsroot/libtemplate/libtemplate/src/strhash.c:
+	bugfix: realloc return value was not used
+
+2002-12-03  smceligot  <smceligot@blue>
+
+	* /cvsroot/libtemplate/libtemplate/libtemplate/Makefile.am, /cvsroot/libtemplate/libtemplate/libtemplate/debug.h, /cvsroot/libtemplate/libtemplate/libtemplate/libtemplate.h, /cvsroot/libtemplate/libtemplate/libtemplate/llist.h, /cvsroot/libtemplate/libtemplate/libtemplate/mybool.h, /cvsroot/libtemplate/libtemplate/libtemplate/strhash.h, /cvsroot/libtemplate/libtemplate/libtemplate/stringutil.h, /cvsroot/libtemplate/libtemplate/libtemplate/test.h, /cvsroot/libtemplate/libtemplate/libtemplate/xmalloc.h:
+	headers moved to libtempate subdir
+
+	* /cvsroot/libtemplate/libtemplate/libtemplate.c, /cvsroot/libtemplate/libtemplate/libtemplate.h, /cvsroot/libtemplate/libtemplate/libtemplate_util.h, /cvsroot/libtemplate/libtemplate/stringutil.c, /cvsroot/libtemplate/libtemplate/stringutil.h, /cvsroot/libtemplate/libtemplate/stringutiltest.c, /cvsroot/libtemplate/libtemplate/test.template, /cvsroot/libtemplate/libtemplate/test.txt:
+	created project subdirs
+
+	* /cvsroot/libtemplate/libtemplate/AUTHORS, /cvsroot/libtemplate/libtemplate/BUGS, /cvsroot/libtemplate/libtemplate/INSTALL, /cvsroot/libtemplate/libtemplate/Makefile, /cvsroot/libtemplate/libtemplate/Makefile.am, /cvsroot/libtemplate/libtemplate/NEWS, /cvsroot/libtemplate/libtemplate/README, /cvsroot/libtemplate/libtemplate/TODO, /cvsroot/libtemplate/libtemplate/autogen.sh, /cvsroot/libtemplate/libtemplate/config.h.in, /cvsroot/libtemplate/libtemplate/configure.in, /cvsroot/libtemplate/libtemplate/debian/changelog, /cvsroot/libtemplate/libtemplate/debian/control, /cvsroot/libtemplate/libtemplate/main.c, /cvsroot/libtemplate/libtemplate/src/Makefile.am, /cvsroot/libtemplate/libtemplate/src/libtemplate.c, /cvsroot/libtemplate/libtemplate/src/list.c, /cvsroot/libtemplate/libtemplate/src/llist.c, /cvsroot/libtemplate/libtemplate/src/strhash.c, /cvsroot/libtemplate/libtemplate/src/stringutil.c, /cvsroot/libtemplate/libtemplate/src/template.c, /cvsroot/libtemplate/libtemplate/src/xmalloc.c, /cvsroot/libtemplate/libtemplate/testsuite/Makefile.am, /cvsroot/libtemplate/libtemplate/testsuite/libtemplate/Makefile.am, /cvsroot/libtemplate/libtemplate/testsuite/libtemplate/check_list.c, /cvsroot/libtemplate/libtemplate/testsuite/libtemplate/check_llist.c, /cvsroot/libtemplate/libtemplate/testsuite/libtemplate/check_strhash.c, /cvsroot/libtemplate/libtemplate/testsuite/libtemplate/check_stringutil.c, /cvsroot/libtemplate/libtemplate/testsuite/template/Makefile.am, /cvsroot/libtemplate/libtemplate/testsuite/template/insert.template, /cvsroot/libtemplate/libtemplate/testsuite/template/list.template, /cvsroot/libtemplate/libtemplate/testsuite/template/list.test, /cvsroot/libtemplate/libtemplate/testsuite/template/nada.template, /cvsroot/libtemplate/libtemplate/testsuite/template/nada.test, /cvsroot/libtemplate/libtemplate/testsuite/template/regex.template:
+	converted to automake and autoconf
+	added testsuite
+	internal redesign
+
+	Sat Oct 12 21:12:27 EDT 2002 Sean McEligot <smceligot@yahoo.com>
 
 	* Release 0.3
 	* util.h: new file
