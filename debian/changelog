@@ -1,3 +1,8 @@
+libtemplate (0.3-1) unstable; urgency=low
+
+  * See upstream Changelog
+
+ -- Sean McEligot <smceligot@hotmail.com>  Tue, 24 Sep 2002 18:12:18 -0400
 libtemplate (0.1-1) unstable; urgency=low
 
   * Initial release.

@@ -2,7 +2,7 @@ Source: libtemplate
 Section: unknown
 Priority: optional
 Maintainer: Sean McEligot <smceligot@hotmail.com>
-Standards-Version: 3.2.1
+Standards-Version: 0.3
 
 Package: libtemplate
 Architecture: any

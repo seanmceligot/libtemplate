@@ -1,0 +1,8 @@
+#! /bin/sh
+set -x
+set -e
+set > set.out
+TESTNAME=`basename $0`
+../../src/template --verbose $srcdir/nada.template > $TESTNAME.out 2> $TESTNAME.err
+grep '^nothing$' $TESTNAME.out
+#grep 'unfreed 0' $TESTNAME.err

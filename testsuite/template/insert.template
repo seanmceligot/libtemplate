@@ -1,0 +1,4 @@
+Insert test.txt:
+/* 
+	 ${i:test.txt}AFTER_INSERT
+*/

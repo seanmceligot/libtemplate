@@ -1,0 +1,9 @@
+AC_INIT(src/template.c)
+AM_INIT_AUTOMAKE(template,0.4)
+AM_CONFIG_HEADER(config.h)
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_OUTPUT(Makefile src/Makefile libtemplate/Makefile testsuite/Makefile testsuite/libtemplate/Makefile testsuite/template/Makefile)
+AC_PROG_MAKE_SET
+AM_WITH_DMALLOC

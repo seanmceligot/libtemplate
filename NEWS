@@ -4,3 +4,8 @@ libtemplate 0.3
 * added -r regular expression search and replace 
 * added -i in-place infile=outfile
 * anded -e, -p options for customizing syntax
+
+libtemplate 0.4
+* converted to automake/autoconf
+* added testsuite
+ 
