@@ -1,5 +1,5 @@
-AM_CFLAGS= -Wall -DWITH_DMALLOC
-LDADDS=-lpcre -ldmalloc
+AM_CFLAGS= -Wall
+LDADDS=-lpcre
 
 DISTCLEANFILES = .deps/*.P
 INCLUDES=-I${top_srcdir}
