@@ -26,7 +26,7 @@ static int g_calls = 0;
 
 #ifndef WITH_DMALLOC
 void *
-xmalloc (const int size, const char *file, const int line)
+xmalloc_fl (const int size, const char *file, const int line)
 {
   void *pointer;
 
@@ -92,7 +92,7 @@ xstrdup (const char *str)
 
 #ifndef WITH_DMALLOC
 void
-xfree (void *pointer, const char *file, const int line)
+xfree_fl (void *pointer, const char *file, const int line)
 {
 
 #ifdef WITH_DEBUG

@@ -1,5 +1,10 @@
 2002-12-08  smceligot  <smceligot@yahoo.com>
 
+	* Release 0.4.2
+	* disabled dmalloc unless --enable-dmalloc specified
+
+2002-12-08  smceligot  <smceligot@yahoo.com>
+
 	* Release 0.4.1
 	* /cvsroot/libtemplate/libtemplate/Makefile.am, /cvsroot/libtemplate/libtemplate/autogen.sh, /cvsroot/libtemplate/libtemplate/configure.in, /cvsroot/libtemplate/libtemplate/libtemplate/libtemplate.h, /cvsroot/libtemplate/libtemplate/libtemplate/stringutil.h, /cvsroot/libtemplate/libtemplate/libtemplate/xmalloc.h:
 	use dmalloc

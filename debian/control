@@ -1,8 +1,8 @@
 Source: libtemplate
-Section: unknown
+Section: libs
 Priority: optional
-Maintainer: Sean McEligot <smceligot@hotmail.com>
-Standards-Version: 0.3
+Maintainer: Sean McEligot <seanm@despammed.com>
+Standards-Version: 0.4.2
 
 Package: libtemplate
 Architecture: any
